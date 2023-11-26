@@ -1,10 +1,6 @@
 NAME = fractol
-
-
 SRCS = main.c
-
 OBJS = $(SRCS:.c=.o)
-
 INCLUDE = -Imlx/mlh.h
 CFLAGS = -Wall -Wextra -Werror
 CC = cc
