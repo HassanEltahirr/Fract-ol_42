@@ -1,53 +1,93 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: haeltahi <haeltahi@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/20 13:26:10 by haeltahi          #+#    #+#             */
+/*   Updated: 2023/12/26 14:12:45 by haeltahi         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "mlx/mlx.h"
-typedef struct s_data {
-	void *img;
-	char *addr;
-	int bits_per_pixel;
-	int line_length;
-	int endian;
-} t_data;
+#include "fractol.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-void my_mlx_pixel_put(t_data *data, int x, int y, int color)
+int	is_digit(int c)
 {
-	char *dst;
-
-	dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
-	*(unsigned int*)dst = (unsigned int)color;
-
-	// *(unsigned int*)dst = color;
+	if (c >= '0' && c <= '9')
+		return (1);
+	return (0);
 }
-void draw_square(t_data *data, int x, int y, int size, int color)
-{
-	int i;
-	int j;
 
-	i = 0;
-	while (i < size)
+int	check_input1(char *str1, char *str2)
+{
+	if (('+' == *str2 || '-' == *str2) || ('+' == *str1 || '-' == *str1))
 	{
-		j = 0;
-		while (j < size)
-		{
-			my_mlx_pixel_put(data, x + i, y + j, color);
-			j++;
-		}
-		i++;
+		str1++;
+		str2++;
 	}
+	if (('+' == *str2 || '-' == *str2) || ('+' == *str1 || '-' == *str1))
+	{
+		ft_putstr_fd("error", 2);
+		return (0);
+	}
+	if ((atoidbl(str1) >= -2 && atoidbl(str1) <= 2) && (atoi(str2) >= -2
+			&& atoidbl(str2) <= 2))
+		return (1);
+	return (0);
 }
-int	main(void)
+
+int	check_input(char *str1, char *str2)
 {
-	void	*mlx;
-	void	*mlx_win;
-	t_data img;
+	if (!str1 || !str2)
+		return (1);
+	while (*str1)
+	{
+		if (!(is_digit(*str1) || *str1 == '.' || *str1 == '-' || *str1 == '+'))
+			return (1);
+		if (*str1 == '.' && (*(str1 + 1) == '\0' || !is_digit(*(str1 + 1))))
+			return (1);
+		str1++;
+	}
+	while (*str2)
+	{
+		if (!((*str2 >= '0' && *str2 <= '9') || *str2 == '.' || *str2 == '-'
+				|| *str2 == '+'))
+			return (1);
+		if (*str2 == '.' && (*(str2 + 1) == '\0' || !is_digit(*(str2 + 1))))
+			return (1);
+		str2++;
+	}
+	return (0);
+}
 
-	mlx = mlx_init();
-	mlx_win = mlx_new_window(mlx, 1920, 1080, "Hello world!");
-	img.img = mlx_new_image(mlx, 1920, 1080);
-	img.addr = mlx_get_data_addr(img.img,&img.bits_per_pixel,&img.line_length,&img.endian);
-	my_mlx_pixel_put(&img, 5, 5, 0x00FF0000);
-	draw_square(&img, 0, 0,150, 0x00FFF000); // Draw a red square at (100, 100) with size 200
+int	main(int ac, char **av)
+{
+	t_fractal	fractal;
 
-	mlx_put_image_to_window(mlx, mlx_win, img.img, 0, 0);
-	mlx_loop(mlx);
-
+	if ((ac == 2 && ft_strcmp(av[1], "mandelbrot") == 0) || (ac == 4
+			&& ((ft_strcmp(av[1], "julia") == 0) && !(check_input(av[2], av[3]))
+				&& (check_input1(av[2], av[3])))))
+	{
+		fractal.name = av[1];
+		if ((ac == 4 && ft_strcmp(av[1], "julia") == 0))
+		{
+			fractal.name = av[1];
+			fractal.julia_x = atoidbl(av[2]);
+			fractal.julia_y = atoidbl(av[3]);
+		}
+		fractal_init(&fractal);
+		fractal_render(&fractal);
+		mlx_hook(fractal.mlx_window, 2, 0, keysum, &fractal);
+		mlx_hook(fractal.mlx_window, 4, 1L << 2, mouse_handler, &fractal);
+		mlx_loop(fractal.mlx_connection);
+	}
+	else
+	{
+		ft_putstr_fd(ERROR_MESSAGE, STDERR_FILENO);
+		exit(EXIT_FAILURE);
+	}
+	return (0);
 }

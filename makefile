@@ -1,14 +1,18 @@
 NAME = fractol
-SRCS = main.c
+SRCS = main.c utils.c render.c init.c math.c events.c
 OBJS = $(SRCS:.c=.o)
-INCLUDE = -Imlx/mlh.h
-CFLAGS = -Wall -Wextra -Werror
-CC = cc
-LIBFLAGS = -Imlx
+CFLAGS = -Wall -Wextra -Werror 
 
+%c: %.o
+	${CC} ${CFLAGS} -c $< -o $@
 
-ALL: $(NAME)
+all : $(NAME)
+$(NAME):	$(OBJS)
+			make -C ./mlx
+			${CC} ${CFLAGS} ${OBJS} -L./mlx -lmlx -framework OpenGL -framework AppKit -o ${NAME}
+clean : 
+	rm -f ${OBJS}
+fclean : clean
+	rm -f ${NAME}
 
-$(NAME): $(OBJS)
-	make -C ./mlx
-	$(CC) $(OBJS) $(INCLUDE) $(LIBFLAGS) -Lmlx -lmlx -framework OpenGL -framework AppKit -o $(NAME)
+re : fclean $(NAME)
